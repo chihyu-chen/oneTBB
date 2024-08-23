@@ -204,8 +204,24 @@ if (EMSCRIPTEN AND NOT EMSCRIPTEN_WITHOUT_PTHREAD)
    set(THREADS_HAVE_PTHREAD_ARG TRUE)
 endif()
 
-set(THREADS_PREFER_PTHREAD_FLAG TRUE)
-find_package(Threads REQUIRED)
+# Skip finding Threads package on iOS
+if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    # iOS specific threading setup if needed
+    set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+    set(CMAKE_HAVE_THREADS_LIBRARY 1)
+    set(CMAKE_USE_WIN32_THREADS_INIT 0)
+    set(CMAKE_USE_PTHREADS_INIT 1)
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+    find_package(Threads)
+
+    # Set the architecture for iOS
+    if (CMAKE_OSX_ARCHITECTURES STREQUAL "")
+        set(CMAKE_OSX_ARCHITECTURES "arm64")
+    endif()
+else()
+    set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+    find_package(Threads REQUIRED)
+endif()
 # -------------------------------------------------------------------
 
 file(GLOB FILES_WITH_EXTRA_TARGETS ${CMAKE_CURRENT_SOURCE_DIR}/cmake/*.cmake)
